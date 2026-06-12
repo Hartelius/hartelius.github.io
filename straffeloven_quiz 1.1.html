@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Straffeloven Quiz</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f8f8f6; color: #1a1a1a; min-height: 100vh; }
+#app { max-width: 600px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+.opt {
+  width: 100%; padding: 13px 16px; border-radius: 10px; border: 1.5px solid #e5e5e2;
+  background: #fff; cursor: pointer; font-family: inherit; font-size: 14px;
+  text-align: left; line-height: 1.5; display: flex; align-items: flex-start;
+  gap: 12px; transition: border-color .1s, background .1s;
+}
+.opt:hover:not(:disabled) { border-color: #888; background: #f5f5f3; }
+.opt:disabled { cursor: default; }
+.lbl {
+  min-width: 26px; height: 26px; border-radius: 50%;
+  background: #f0f0ed; color: #888;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+}
+.opt.correct { border-color: #4ade80; background: #dcfce7; }
+.opt.correct .lbl { background: #4ade80; color: #14532d; }
+.opt.correct .otxt { color: #14532d; }
+.opt.wrong { border-color: #fca5a5; background: #fee2e2; }
+.opt.wrong .lbl { background: #fca5a5; color: #7f1d1d; }
+.opt.wrong .otxt { color: #7f1d1d; }
+.opt.dimmed { opacity: 0.3; }
+.btn { font-family: inherit; cursor: pointer; border-radius: 8px; font-size: 14px; padding: 11px 22px; border: 1.5px solid #d4d2cc; background: #fff; color: #1a1a1a; }
+.btn:hover { background: #f0f0ed; }
+.btn-dark { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+.btn-dark:hover { background: #333; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const ALL = [
+  {id:1,  par:"§ 119",          desc:"Vold og trusler mod personer i offentlig tjeneste eller hverv"},
+  {id:2,  par:"§ 119a",         desc:"Chikane mod personer i offentlig tjeneste eller hverv"},
+  {id:3,  par:"§ 119b",         desc:"Angreb med genstand mod personer i offentlig tjeneste eller hverv"},
+  {id:4,  par:"§ 121",          desc:"Fornærmelig tiltale mod personer i offentlig tjeneste eller hverv"},
+  {id:5,  par:"§ 122",  		desc:"Bestikkelse af personer i offentlig tjeneste eller hverv (aktiv)"},
+  {id:6,  par:"§ 123",          desc:"Vidnetrusler"},
+  {id:7,  par:"§ 139, stk. 1",  desc:"Usømmelig omgang med lig og krænkelse af gravfred"},
+  {id:8,  par:"§ 144", 			desc:"Modtagelse af bestikkelse for personer ansat i offentlig tjeneste eller hverv (passiv)"},
+  {id:9,  par:"§ 180",          desc:"Kvalificeret brandstiftelse"},
+  {id:10, par:"§ 181",          desc:"Brandstiftelse"},
+  {id:11, par:"§ 182",          desc:"Uagtsom brandstiftelse"},
+  {id:12, par:"§ 216",          desc:"Voldtægt"},
+  {id:13, par:"§ 222",          desc:"Samleje med mindreårig"},
+  {id:14, par:"§ 225",          desc:"Andet seksuelt forhold end samleje"},
+  {id:15, par:"§ 228",          desc:"Uagtsomhed ved seksualforbrydelser"},
+  {id:16, par:"§ 232",          desc:"Blufærdighedskrænkelse"},
+  {id:17, par:"§ 237",          desc:"Manddrab"},
+  {id:18, par:"§ 241",          desc:"Uagtsomt manddrab"},
+  {id:19, par:"§ 242",          desc:"Stalking"},
+  {id:20, par:"§ 243",          desc:"Psykisk vold"},
+  {id:21, par:"§ 244",          desc:"Vold"},
+  {id:22, par:"§ 245",          desc:"Kvalificeret vold"},
+  {id:23, par:"§ 246",          desc:"Særlig grov vold"},
+  {id:24, par:"§ 247",          desc:"Strafskærpelse ved gentagelsestilfælde og særligt udsatte for §§ 243-246"},
+  {id:25, par:"§ 249",          desc:"Uagtsom legemsbeskadigelse"},
+  {id:26, par:"§ 250",          desc:"Hensættelse i hjælpeløs tilstand"},
+  {id:27, par:"§ 252",          desc:"Forsætlig fareforvoldelse"},
+  {id:28, par:"§ 253",          desc:"Hjælpepligt"},
+  {id:29, par:"§ 260",          desc:"Ulovlig tvang"},
+  {id:30, par:"§ 264",          desc:"Ulovlig indtrængen, husfredskrænkelse"},
+  {id:31, par:"§ 266",          desc:"Trusler"},
+  {id:32, par:"§ 276",          desc:"Tyveri"},
+  {id:33, par:"§ 276a",         desc:"Indbrudstyveri"},
+  {id:34, par:"§ 277",          desc:"Ulovlig omgang med hittegods"},
+  {id:35, par:"§ 278",          desc:"Underslæb"},
+  {id:36, par:"§ 279",          desc:"Bedrageri"},
+  {id:37, par:"§ 279a",         desc:"Databedrageri"},
+  {id:38, par:"§ 281",          desc:"Afpresning"},
+  {id:39, par:"§ 285",          desc:"Strafbestemmelser for berigelsesforbrydelser"},
+  {id:40, par:"§ 286",          desc:"Strafskærpelser for berigelsesforbrydelser"},
+  {id:41, par:"§ 287",          desc:"Bagatelgrænse for berigelsesforbrydelser"},
+  {id:42, par:"§ 288",          desc:"Røveri"},
+  {id:43, par:"§ 289a",         desc:"Socialt bedrageri"},
+  {id:44, par:"§ 290",          desc:"Hæleri"},
+  {id:45, par:"§ 291",          desc:"Hærværk"},
+  {id:46, par:"§ 293",          desc:"Uberettiget brug"},
+  {id:47, par:"§ 293a",         desc:"Uberettiget brug af motorkøretøj"},
+];
+
+let S = { mode:'setup', numQ:20, questions:[], qi:0, answered:false, selectedId:null, wrongs:[], score:0 };
+
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+
+const app = document.getElementById('app');
+
+function buildQuiz(pairs) {
+  return shuffle(pairs).map(pair => ({
+    pair,
+    opts: shuffle([pair, ...shuffle(ALL.filter(p => p.id !== pair.id)).slice(0, 3)])
+  }));
+}
+
+function render() {
+  if (S.mode === 'setup') app.innerHTML = rSetup();
+  else if (S.mode === 'quiz') app.innerHTML = rQuiz();
+  else app.innerHTML = rResults();
+}
+
+function rSetup() {
+  return `
+<div style="text-align:center;padding:2.5rem 0">
+  <div style="font-size:48px;margin-bottom:.75rem">&#9878;&#65039;</div>
+  <h1 style="font-size:24px;font-weight:600;margin-bottom:.3rem">Straffeloven Quiz</h1>
+  <p style="font-size:13px;color:#666;margin-bottom:.2rem">Test dine paragraffer</p>
+  <p style="font-size:11px;color:#bbb;margin-bottom:2.75rem">LBK nr 1294 af 07/11/2025 · 47 paragraffer</p>
+  <p style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem">Antal spørgsmål</p>
+  <div style="display:flex;gap:10px;justify-content:center;margin-bottom:2.75rem">
+    ${[10, 20, 47].map(n => `
+    <div onclick="selN(${n})" style="
+      padding:16px 26px;border-radius:10px;cursor:pointer;font-size:16px;font-weight:600;user-select:none;
+      border:${S.numQ===n?'2px solid #1a1a1a':'1.5px solid #d4d2cc'};
+      background:${S.numQ===n?'#1a1a1a':'#fff'};
+      color:${S.numQ===n?'#fff':'#888'}">
+      ${n===47?'Alle':n}
+    </div>`).join('')}
+  </div>
+  <div onclick="startQuiz()" style="
+    display:inline-block;padding:14px 56px;font-size:16px;font-weight:500;
+    background:#1a1a1a;color:#fff;border-radius:10px;cursor:pointer;user-select:none;margin-bottom:1rem">
+    Start quiz &rarr;
+  </div>
+  <p style="font-size:12px;color:#ccc;margin-top:.75rem">4 svarmuligheder &middot; Tilfældig rækkefølge</p>
+</div>`;
+}
+
+function selN(n) { S.numQ = n; render(); }
+
+function startQuiz() {
+  const pairs = shuffle(ALL).slice(0, S.numQ);
+  S.questions = buildQuiz(pairs);
+  S.qi=0; S.answered=false; S.selectedId=null; S.wrongs=[]; S.score=0;
+  S.mode = 'quiz';
+  render();
+}
+
+const LABELS = ['A','B','C','D'];
+
+function rQuiz() {
+  const q = S.questions[S.qi];
+  const total = S.questions.length;
+  const pct = (S.qi / total) * 100;
+  const isLast = S.qi + 1 >= total;
+
+  const opts = q.opts.map((opt, i) => {
+    let cls='', lblBg='#f0f0ed', lblColor='#888', txtColor='inherit';
+    if (S.answered) {
+      if (opt.id === q.pair.id) { cls='correct'; lblBg='#4ade80'; lblColor='#14532d'; txtColor='#14532d'; }
+      else if (opt.id === S.selectedId) { cls='wrong'; lblBg='#fca5a5'; lblColor='#7f1d1d'; txtColor='#7f1d1d'; }
+      else { cls='dimmed'; }
+    }
+    return `<button class="opt ${cls}" onclick="answer(${opt.id})" ${S.answered?'disabled':''}>
+      <span class="lbl" style="background:${lblBg};color:${lblColor}">${LABELS[i]}</span>
+      <span class="otxt" style="flex:1;line-height:1.5;color:${txtColor}">${opt.desc}</span>
+    </button>`;
+  }).join('');
+
+  const feedback = S.answered ? `
+  <div style="padding:12px 14px;border-radius:8px;font-size:13px;line-height:1.5;margin-bottom:1rem;
+    ${S.selectedId===q.pair.id?'background:#dcfce7;color:#14532d':'background:#fee2e2;color:#7f1d1d'}">
+    ${S.selectedId===q.pair.id
+      ? '&#10003;&nbsp; Korrekt!'
+      : `&#10007;&nbsp; Forkert &mdash; det rigtige svar var: <strong>${q.pair.desc}</strong>`}
+  </div>
+  <button onclick="next()" style="width:100%;padding:14px;font-size:15px;font-weight:500;
+    background:#1a1a1a;color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit">
+    ${isLast?'Se resultat &rarr;':'Næste &rarr;'}
+  </button>` : '';
+
+  return `
+<div style="padding-top:.25rem">
+  <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#aaa;margin-bottom:.5rem">
+    <span>${S.qi+1} / ${total}</span>
+    <span style="color:${S.score>0?'#14532d':'#ccc'};font-weight:500">&#10003; ${S.score} korrekte</span>
+  </div>
+  <div style="height:4px;background:#e5e5e2;border-radius:2px;margin-bottom:1.75rem;overflow:hidden">
+    <div style="height:100%;background:#1a1a1a;border-radius:2px;width:${pct}%;transition:width .35s ease"></div>
+  </div>
+  <div style="background:#1a1a1a;color:#fff;border-radius:14px;padding:2rem 1.75rem;text-align:center;margin-bottom:1.25rem">
+    <div style="font-size:11px;letter-spacing:.07em;color:#666;text-transform:uppercase;margin-bottom:.65rem">
+      Hvilken beskrivelse passer til?
+    </div>
+    <div style="font-size:36px;font-weight:700;letter-spacing:-.5px">${q.pair.par}</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem">${opts}</div>
+  ${feedback}
+</div>`;
+}
+
+function answer(id) {
+  if (S.answered) return;
+  S.answered=true; S.selectedId=id;
+  const q = S.questions[S.qi];
+  if (id===q.pair.id) S.score++;
+  else S.wrongs.push({question:q, selectedId:id});
+  render();
+}
+
+function next() {
+  S.qi++;
+  if (S.qi >= S.questions.length) { S.mode='results'; }
+  else { S.answered=false; S.selectedId=null; }
+  render();
+}
+
+function rResults() {
+  const total = S.questions.length;
+  const pct = Math.round(S.score/total*100);
+  const medal = pct>=90?'&#127942;':pct>=70?'&#127919;':pct>=50?'&#128218;':'&#128170;';
+
+  const wrongList = S.wrongs.length===0
+    ? `<div style="padding:1.25rem;text-align:center;background:#dcfce7;border-radius:10px;color:#14532d;font-size:14px">
+        &#127881; Ingen fejl &mdash; perfekt resultat!
+       </div>`
+    : `<div style="border-top:1px solid #e5e5e2;padding-top:1.5rem">
+        <h2 style="font-size:11px;color:#bbb;text-transform:uppercase;letter-spacing:.07em;margin-bottom:1rem">
+          Forkerte svar (${S.wrongs.length}) &mdash; lær dem
+        </h2>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${S.wrongs.map(w=>`
+          <div style="border:1px solid #e5e5e2;border-radius:10px;padding:14px 16px">
+            <div style="font-weight:700;font-size:16px;margin-bottom:.5rem">${w.question.pair.par}</div>
+            <div style="font-size:13px;color:#14532d;margin-bottom:.3rem">
+              &#10003; <strong>${w.question.pair.desc}</strong>
+            </div>
+            <div style="font-size:12px;color:#bbb;margin-top:4px">
+              Du svarede: ${ALL.find(p=>p.id===w.selectedId)?.desc||'–'}
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>`;
+
+  return `
+<div>
+  <div style="text-align:center;padding:2rem 0 2rem">
+    <div style="font-size:58px;margin-bottom:1rem">${medal}</div>
+    <div style="font-size:30px;font-weight:700;margin-bottom:.4rem">${S.score} / ${total}</div>
+    <div style="font-size:15px;color:#888;margin-bottom:2rem">${pct}% korrekte svar</div>
+    <div style="display:inline-grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:2rem;min-width:240px">
+      <div style="background:#f0f0ed;border-radius:10px;padding:16px">
+        <div style="font-size:26px;font-weight:700;color:#14532d">${S.score}</div>
+        <div style="font-size:11px;color:#aaa;margin-top:3px">Rigtige</div>
+      </div>
+      <div style="background:#f0f0ed;border-radius:10px;padding:16px">
+        <div style="font-size:26px;font-weight:700;color:#7f1d1d">${total-S.score}</div>
+        <div style="font-size:11px;color:#aaa;margin-top:3px">Forkerte</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      ${S.wrongs.length>0?`<button class="btn btn-dark" onclick="replayWrongs()">Øv fejl (${S.wrongs.length}) &rarr;</button>`:''}
+      <button class="btn" onclick="startQuiz()">Prøv igen</button>
+      <button class="btn" onclick="goMenu()">Menu</button>
+    </div>
+  </div>
+  ${wrongList}
+</div>`;
+}
+
+function replayWrongs() {
+  const wrongPairs = S.wrongs.map(w => w.question.pair);
+  S.questions = buildQuiz(wrongPairs);
+  S.qi=0; S.answered=false; S.selectedId=null; S.wrongs=[]; S.score=0;
+  S.mode='quiz';
+  render();
+}
+
+function goMenu() { S.mode='setup'; render(); }
+
+render();
+</script>
+</body>
+</html>
